@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RescueEye PPT Presentation – Satellite-Connected Disaster Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050811;
+      --card-bg: #0c1426;
+      --card-border: rgba(0, 240, 255, 0.25);
+      --cyan: #00f0ff;
+      --orange: #ff6a00;
+      --red: #ff2a55;
+      --yellow: #ffb703;
+      --green: #00ff88;
+      --purple: #a855f7;
+      --text: #e6f1ff;
+      --text-muted: #8ba0c2;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .nav-bar {
+      height: 54px;
+      background: #090e1a;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      z-index: 100;
+    }
+    .brand {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .brand span { color: var(--cyan); }
+    .founder-credit {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--yellow);
+      background: rgba(255, 183, 3, 0.1);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+    .slide-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--cyan);
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      background: #141f38;
+      color: #fff;
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    }
+    .btn-primary {
+      background: var(--red);
+      border-color: transparent;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 12px rgba(255, 42, 85, 0.6);
+    }
+
+    /* Slide Deck Container */
+    .deck-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      padding: 2.5rem 4.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(60px);
+      transition: all 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+      background-image: 
+        radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(255, 42, 85, 0.04) 0%, transparent 50%);
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    /* Slide Typography */
+    .slide-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .slide-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 1.2rem;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .slide-title .hl { color: var(--cyan); }
+    .slide-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 1.8rem;
+      max-width: 950px;
+    }
+
+    /* Slide Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.8rem;
+    }
+
+    /* Presentation Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--cyan);
+      margin-bottom: 0.6rem;
+    }
+    .card p, .card li {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card ul {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    .card ul li {
+      margin-bottom: 0.4rem;
+      padding-left: 1.2rem;
+      position: relative;
+    }
+    .card ul li::before {
+      content: "▹";
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+    .card strong { color: #fff; }
+
+    /* Highlights & Metrics */
+    .metric-hero {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--red);
+      margin-bottom: 0.2rem;
+    }
+    .metric-lbl {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Bottom Status Bar */
+    .footer-bar {
+      height: 38px;
+      background: #090e1a;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="nav-bar">
+    <div style="display:flex; align-items:center;">
+      <div class="brand">RESCUE<span>EYE</span></div>
+      <span class="founder-credit">SOLUTION CONQUERORS • FOUNDED BY GMA</span>
+    </div>
+    <div class="slide-counter" id="slide-counter">SLIDE 01 / 12</div>
+    <div class="nav-buttons">
+      <button class="btn" id="btn-prev">◀ PREV</button>
+      <button class="btn" id="btn-next">NEXT ▶</button>
+      <a href="index.html" class="btn btn-primary">LAUNCH COMMAND HUD 🚀</a>
+    </div>
+  </header>
+
+  <!-- Slide Deck -->
+  <main class="deck-container">
+    
+    <!-- SLIDE 1: Title & Overview -->
+    <section class="slide active">
+      <div class="slide-tag">GLOBAL DISASTER RESPONSE PLATFORM</div>
+      <h1 class="slide-title">RESCUE<span class="hl">EYE</span></h1>
+      <h3 style="font-family:'Orbitron'; font-size:1.3rem; color:var(--yellow); margin-bottom:1rem;">
+        SATELLITE-CONNECTED DISASTER INTELLIGENCE & AUTONOMOUS DRONE DISPATCH NETWORK
+      </h3>
+      <p class="slide-subtitle">
+        A unified Space-to-Ground architecture connecting orbital satellite damage recognition, AI-driven sector prioritization, autonomous multi-UAV swarm reconnaissance, multi-modal edge sensor fusion, and resilient satellite telemetry for post-disaster survivor rescue.
+      </p>
+      <div class="grid-4 mt-4">
+        <div class="card" style="border-color:var(--cyan);">
+          <div class="metric-hero" style="color:var(--cyan);">SPACE</div>
+          <div class="metric-lbl">Orbital SAR Recon & Damage Segmentation</div>
+        </div>
+        <div class="card" style="border-color:var(--yellow);">
+          <div class="metric-hero" style="color:var(--yellow);">AIR</div>
+          <div class="metric-lbl">Autonomous 4-UAV Swarm Trajectories</div>
+        </div>
+        <div class="card" style="border-color:var(--purple);">
+          <div class="metric-hero" style="color:var(--purple);">EDGE AI</div>
+          <div class="metric-lbl">FLIR + YOLOv8 + DSP Voice + UWB Radar</div>
+        </div>
+        <div class="card" style="border-color:var(--red);">
+          <div class="metric-hero" style="color:var(--red);">RESCUE</div>
+          <div class="metric-lbl">Live Spotter Guidance & Centimeter GPS</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Problem Statement & The Golden 72 Hours -->
+    <section class="slide">
+      <div class="slide-tag">THE PROBLEM & BOTTLENECK</div>
+      <h2 class="slide-title">THE FIRST 72 HOURS & <span class="hl">NETWORK COLLAPSE</span></h2>
+      <p class="slide-subtitle">
+        During major natural disasters (earthquakes, flash floods, landslides, wildfires), conventional infrastructure fails catastrophically.
+      </p>
+      <div class="grid-3">
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <div class="card-title">1. Ground Access Blockades</div>
+          <p>Destroyed bridges, debris-filled arteries, and active mudflows prevent ground search teams from reaching trapped survivors in the critical Golden 72 Hours.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--orange);">
+          <div class="card-title">2. Terrestrial Network Blackout</div>
+          <p>Cellular towers, fiber optics, and electrical power grids collapse, blinding standard emergency dispatch systems and severing communications.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--yellow);">
+          <div class="card-title">3. Single-Sensor Blind Spots</div>
+          <p>Optical-only drones fail in dense dust, concrete smoke, or darkness. Single-sensor platforms cannot reliably distinguish ambient heat from human life.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: 5-Tier Space-to-Ground Architecture -->
+    <section class="slide">
+      <div class="slide-tag">SYSTEM ARCHITECTURE</div>
+      <h2 class="slide-title">5-TIER SPACE-TO-GROUND <span class="hl">RESPONSE ECOSYSTEM</span></h2>
+      <p class="slide-subtitle">
+        RescueEye bridges every operational tier of disaster intelligence into an automated, closed-loop rescue pipeline.
+      </p>
+      <div class="grid-5">
+        <div class="card" style="border-top: 3px solid var(--cyan);">
+          <div class="card-title" style="font-size:0.85rem;">1. SPACE</div>
+          <p><strong>Satellite Network:</strong> Synthetic Aperture Radar (SAR) disaster damage mapping and resilient L-Band/Starlink relays.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--yellow);">
+          <div class="card-title" style="font-size:0.85rem;">2. COMMAND</div>
+          <p><strong>AI GIS Hub:</strong> Damage segmentation, sector hazard ranking (A–D), and swarm route optimization.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green);">
+          <div class="card-title" style="font-size:0.85rem;">3. AIR SWARM</div>
+          <p><strong>Multi-UAV Fleet:</strong> 4 synchronized drones executing Lawnmower, Rubble Spiral, and Crevice scans.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <div class="card-title" style="font-size:0.85rem;">4. EDGE AI</div>
+          <p><strong>Bayesian Fusion:</strong> 32x24 IR, YOLOv8 SAR, 4-Mic DSP, and UWB chest-wall vitals radar.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--red);">
+          <div class="card-title" style="font-size:0.85rem;">5. RESCUE</div>
+          <p><strong>Ground Units:</strong> Live overhead spotlight, real-time distance countdown, and survivor extraction.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Satellite Disaster Detection & DPM -->
+    <section class="slide">
+      <div class="slide-tag">SPACE TIER</div>
+      <h2 class="slide-title">SATELLITE RECONNAISSANCE & <span class="hl">DAMAGE PROXY MAPPING</span></h2>
+      <p class="slide-subtitle">
+        When a major disaster occurs, orbital satellites provide large-scale situational awareness before ground teams arrive.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Sentinel-1C & RADARSAT SAR Sensing</div>
+          <ul>
+            <li><strong>All-Weather Penetration:</strong> C-Band radar penetrates cloud cover, dust storms, and dense wildfire smoke.</li>
+            <li><strong>Damage Proxy Maps (DPM):</strong> Differential interferometry identifies structural collapse and debris fields across 24.8 km².</li>
+            <li><strong>Flood Inundation Contours:</strong> Accurately delineates water depth and cut-off residential zones.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Orbital Ingestion Feed</div>
+          <div style="background:#020612; padding:10px; border-radius:6px; font-family:'JetBrains Mono'; font-size:0.75rem; color:var(--cyan); line-height:1.6;">
+            [SATELLITE DISASTER MONITORING]<br>
+            NEW EVENT DETECTED: EARTHQUAKE M7.8<br>
+            AFFECTED AREA: 24.8 km²<br>
+            SEVERITY: CRITICAL<br>
+            GROUND ACCESS: LIMITED (BRIDGES SEVERED)<br>
+            AI RECOMMENDATION: DISPATCH SECTOR A-D SWARM
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: AI Sector Prioritization Matrix -->
+    <section class="slide">
+      <div class="slide-tag">AI COMMAND TIER</div>
+      <h2 class="slide-title">AI SECTORIZATION & <span class="hl">SEARCH PRIORITIZATION</span></h2>
+      <p class="slide-subtitle">
+        The AI Command Engine analyzes incoming satellite data and divides the disaster zone into prioritized, hazard-calibrated sectors.
+      </p>
+      <div class="grid-4">
+        <div class="card" style="border-left: 3px solid var(--red);">
+          <div class="card-title" style="color:var(--red);">SECTOR A • CRITICAL</div>
+          <p><strong>Collapsed Structures:</strong> High-density concrete rubble. Assigned to UAV-01 (FLIR Lead SAR).</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--yellow);">
+          <div class="card-title" style="color:var(--yellow);">SECTOR B • HIGH</div>
+          <p><strong>Isolated Population:</strong> Stranded community behind flood ingress. Assigned to UAV-02 (Flood Zoom).</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--yellow);">
+          <div class="card-title" style="color:var(--yellow);">SECTOR C • HIGH</div>
+          <p><strong>Flooded Rubble Voids:</strong> Submerged basement ruins. Assigned to UAV-03 (4-Mic Acoustic DSP).</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green);">
+          <div class="card-title" style="color:var(--green);">SECTOR D • MODERATE</div>
+          <p><strong>Infrastructure Corridor:</strong> Passable ground route. Assigned to UAV-04 (LiDAR Road Recon).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Autonomous Multi-UAV Swarm Dispatch -->
+    <section class="slide">
+      <div class="slide-tag">AIR TIER</div>
+      <h2 class="slide-title">AUTONOMOUS <span class="hl">DRONE SWARM COORDINATOR</span></h2>
+      <p class="slide-subtitle">
+        Coordinated multi-drone deployment scales coverage across large disaster zones with zero human pilot bottleneck.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Automated Flight Mission Generator</div>
+          <ul>
+            <li><strong>Optimal Altitude:</strong> Automatically maintained at 12–15m AGL using HC-SR04 sonar.</li>
+            <li><strong>Search Patterns:</strong> Lawnmower parallel lines, Expanding Rubble Spiral, and Crevice scans.</li>
+            <li><strong>Battery Reserves:</strong> Automatic 25% RTH reserve calculation ensures zero vehicle loss.</li>
+            <li><strong>Collision Avoidance:</strong> Swarm mesh coordination with real-time dynamic geofencing.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Active Swarm Metrics HUD</div>
+          <div class="grid-2" style="margin-top:0.5rem;">
+            <div>
+              <div class="metric-hero" style="font-size:1.6rem; color:var(--cyan);">4 UAVs</div>
+              <div class="metric-lbl">Synchronized Airborne</div>
+            </div>
+            <div>
+              <div class="metric-hero" style="font-size:1.6rem; color:var(--green);">68.4%</div>
+              <div class="metric-lbl">Sector Grid Coverage</div>
+            </div>
+            <div>
+              <div class="metric-hero" style="font-size:1.6rem; color:var(--yellow);">24.8 km²</div>
+              <div class="metric-lbl">Total Scanned Area</div>
+            </div>
+            <div>
+              <div class="metric-hero" style="font-size:1.6rem; color:var(--red);">7 VICTIMS</div>
+              <div class="metric-lbl">Pinpoint Coordinates Locked</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Multi-Modal Edge AI Sensing -->
+    <section class="slide">
+      <div class="slide-tag">EDGE SENSING TIER</div>
+      <h2 class="slide-title">QUAD-SPECTRUM <span class="hl">EDGE AI SENSORS</span></h2>
+      <p class="slide-subtitle">
+        Single sensors fail under post-disaster dust, fire, or collapse. RescueEye fuses four independent sensory modalities.
+      </p>
+      <div class="grid-4">
+        <div class="card" style="border-top: 3px solid var(--orange);">
+          <div class="card-title">1. FLIR Thermal IR</div>
+          <p>MLX90640 32x24 array detects 30°C–40°C human body heat through concrete crevices, darkness, and dust.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--cyan);">
+          <div class="card-title">2. 4K RGB YOLOv8</div>
+          <p>YOLOv8n-SAR models identify trapped limbs, faces, occluded bodies, and waving distress gestures at 30 FPS.</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--yellow);">
+          <div class="card-title">3. 4-Mic DSP Acoustic</div>
+          <p>ReSpeaker array with 200–800Hz rotor noise notch filter spots cries for help ("HELP", "SAVE ME", "SOS").</p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--purple);">
+          <div class="card-title">4. UWB Radar Vitals</div>
+          <p>Ultra-Wideband sub-debris radar detects microscopic chest-wall movement associated with respiration (14 bpm).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Bayesian Sensor Fusion Engine -->
+    <section class="slide">
+      <div class="slide-tag">MATHEMATICS & AI ENGINE</div>
+      <h2 class="slide-title">BAYESIAN MULTI-MODAL <span class="hl">SENSOR FUSION</span></h2>
+      <p class="slide-subtitle">
+        Computes an actionable survivor confidence score ($C$) to eliminate false alarms and automate triage dispatch.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Calibrated Fusion Formula</div>
+          <div style="background:#020612; padding:12px; border-radius:6px; font-family:'JetBrains Mono'; font-size:0.9rem; color:var(--cyan); margin-bottom:10px;">
+            C = (0.35 × Thermal) + (0.25 × RGB) + (0.25 × Voice) + (0.15 × Radar)
+          </div>
+          <ul>
+            <li><strong>Thermal Weight (35%):</strong> Unmatched for occluded debris crevices.</li>
+            <li><strong>RGB Weight (25%):</strong> Precise shape and posture validation.</li>
+            <li><strong>Voice Weight (25%):</strong> Direct active survivor confirmation.</li>
+            <li><strong>UWB Radar (15%):</strong> Biological life sign verification.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Triage Classification Matrix</div>
+          <ul>
+            <li><strong style="color:var(--red);">CRITICAL ($C \ge 85\%$):</strong> Immediate ground extraction unit dispatch; drop GPS beacon.</li>
+            <li><strong style="color:var(--yellow);">HIGH ($70\% \le C < 85\%$):</strong> Hover & deep acoustic scan; dispatch secondary search unit.</li>
+            <li><strong style="color:var(--green);">MODERATE ($50\% \le C < 70\%$):</strong> Mark on tactical GIS map for verification.</li>
+            <li><strong style="color:var(--text-muted);">LOW ($C < 50\%$):</strong> Ambient artifact; log and continue search.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Resilient Satellite Telemetry & Failover -->
+    <section class="slide">
+      <div class="slide-tag">COMMUNICATIONS TIER</div>
+      <h2 class="slide-title">RESILIENT SATELLITE <span class="hl">FAILOVER NETWORK</span></h2>
+      <p class="slide-subtitle">
+        When disaster destroys ground cellular towers, RescueEye maintains zero-downtime mission telemetry via space relays.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Dual-Path Communication Topology</div>
+          <ul>
+            <li><strong>Terrestrial 5G / LoRa:</strong> High-bandwidth video streaming under normal conditions.</li>
+            <li><strong>Instant Orbital Failover:</strong> Automatically switches to Iridium L-Band & Starlink LEO satellites.</li>
+            <li><strong>Bandwidth Prioritization:</strong> Sheds heavy 4K video to guarantee 100% receipt of 248-byte survivor GPS telemetry packets.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Emergency Packet Telemetry Structure</div>
+          <div style="background:#020612; padding:10px; border-radius:6px; font-family:'JetBrains Mono'; font-size:0.75rem; color:#5af78e; line-height:1.6;">
+            [08:34:02] 🛰️ SAT-RELAY: IRIDIUM SV-104<br>
+            [08:34:02] 📦 PKT #10481 (248 Bytes)<br>
+            • DRONE: UAV-ALPHA-01<br>
+            • LAT: 17.385300° N | LNG: 78.487100° E<br>
+            • ACCURACY: ±0.4 M<br>
+            • TEMP: 36.8°C | KEYWORD: "HELP"<br>
+            • FUSED CONFIDENCE: 94.2% (CRITICAL)<br>
+            • TASK: DISPATCH RT-07
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Ground Rescue Team Guidance -->
+    <section class="slide">
+      <div class="slide-tag">RESCUE TIER</div>
+      <h2 class="slide-title">REAL-TIME <span class="hl">LIVE RESCUE GUIDANCE</span></h2>
+      <p class="slide-subtitle">
+        The drone remains overhead, acting as an aerial spotlight and navigational beacon for approaching ground teams.
+      </p>
+      <div class="grid-3">
+        <div class="card" style="border-left: 3px solid var(--cyan);">
+          <div class="card-title">1. Centimeter GPS Coordinates</div>
+          <p>u-blox NEO-M8N with dual-frequency RTK provides ±0.4m precision directly to first-responder ATAK handsets.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--yellow);">
+          <div class="card-title">2. Live Distance Vectoring</div>
+          <p>Continuous distance countdown ("VICTIM: 82 M", "ETA: 1m 40s") vectors responders through cleared debris corridors.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green);">
+          <div class="card-title">3. High-Intensity Spotlight</div>
+          <p>Onboard drone spotlight illuminates the exact void entry point, cutting critical minutes during night operations.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: Real-World Case Studies & Impact -->
+    <section class="slide">
+      <div class="slide-tag">HUMANITARIAN IMPACT</div>
+      <h2 class="slide-title">EXTREME DISASTER <span class="hl">OPERATIONAL VALUE</span></h2>
+      <p class="slide-subtitle">
+        Engineered for rapid deployment with NDMA, FEMA, military search squads, and international humanitarian agencies.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">City Earthquake Rubble</div>
+          <p>Searches 24.8 km² in 18 minutes vs 36 hours for canine teams. Detects survivors trapped under multi-story slabs.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Mountain Landslide</div>
+          <p>Crosses severed valley gorges and mudflows to locate isolated villagers pinned under debris pockets.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">River Flash Floods</div>
+          <p>Multispectral water delineation rapidly pinpoints marooned families on rooftops across 38 km² basins.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: Technology Vision & Founder Credits -->
+    <section class="slide">
+      <div class="slide-tag">TECHNOLOGY VISION</div>
+      <h1 class="slide-title">RESCUE<span class="hl">EYE</span></h1>
+      <h3 style="font-family:'Orbitron'; font-size:1.2rem; color:var(--cyan); margin-bottom:1.5rem;">
+        "FROM SPACE TO THE GROUND, RESCUEEYE CONNECTS EVERY LAYER OF DISASTER RESPONSE."
+      </h3>
+      <p style="font-size:1.1rem; font-style:italic; color:#fff; margin-bottom:2rem;">
+        "When disaster destroys the network, RescueEye keeps the mission connected."
+      </p>
+      
+      <div class="card" style="border-color:var(--red); text-align:center; padding:1.5rem; max-width:700px;">
+        <h2 style="font-family:'Orbitron'; color:var(--red); font-size:1.4rem;">SOLUTION CONQUERORS</h2>
+        <h4 style="font-family:'Orbitron'; color:var(--yellow); margin-top:0.4rem;">FOUNDED BY GMA</h4>
+        <p style="margin-top:0.8rem; font-size:0.85rem; color:var(--text-muted);">
+          Open Humanitarian Standard for Autonomous Search and Rescue Systems.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Status Bar -->
+  <footer class="footer-bar">
+    <div>RESCUEEYE SPACE-TO-GROUND DISASTER INTELLIGENCE</div>
+    <div>USE [◀ PREV] AND [NEXT ▶] OR KEYBOARD ARROWS TO NAVIGATE</div>
+    <div>SOLUTION CONQUERORS • GMA</div>
+  </footer>
+
+  <!-- Slide Navigation Script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const counterEl = document.getElementById('slide-counter');
+
+    function updateSlides(newIndex) {
+      if (newIndex < 0 || newIndex >= totalSlides) return;
+      slides[currentSlide].classList.remove('active');
+      currentSlide = newIndex;
+      slides[currentSlide].classList.add('active');
+      counterEl.innerText = `SLIDE ${String(currentSlide + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+    }
+
+    document.getElementById('btn-next').addEventListener('click', () => updateSlides(currentSlide + 1));
+    document.getElementById('btn-prev').addEventListener('click', () => updateSlides(currentSlide - 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        updateSlides(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft') {
+        updateSlides(currentSlide - 1);
+      }
+    });
+  </script>
+</body>
+</html>

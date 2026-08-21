@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RescueEye — Satellite-Connected Disaster Intelligence & Autonomous Drone Dispatch Network</title>
+  <meta name="description" content="Space-to-Ground Disaster Response Platform: Satellite Disaster Intelligence, AI Sectorization, Autonomous UAV Swarm Dispatch, Multi-Modal Sensor Fusion, and Ground Rescue Guidance.">
+  
+  <!-- Google Fonts: Orbitron, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS for Tactical GIS Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation / Mission Header -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-badge">
+        <i data-lucide="satellite" class="icon-pulse satellite-spin"></i>
+      </div>
+      <div>
+        <div class="brand-title-row">
+          <h1 class="brand-title">RESCUE<span class="highlight">EYE</span> <span class="version-tag">SATELLITE INTEL v3.0</span></h1>
+          <span class="founder-tag">BY SOLUTION CONQUERORS • GHAZI MOHAMMAD ARSH</span>
+        </div>
+        <p class="brand-sub">Satellite Disaster Intelligence & Autonomous Multi-UAV Dispatch Network</p>
+      </div>
+    </div>
+
+    <!-- Main Navigation View Tabs -->
+    <nav class="view-tabs" id="view-tabs">
+      <button class="tab-btn active" data-view="tactical-hud">
+        <i data-lucide="crosshair"></i> Tactical HUD
+      </button>
+      <button class="tab-btn" data-view="satellite-ops">
+        <i data-lucide="globe"></i> Satellite Intel
+      </button>
+      <button class="tab-btn" data-view="swarm-manager">
+        <i data-lucide="boxes"></i> Drone Swarm
+      </button>
+      <button class="tab-btn" data-view="satellite-comms">
+        <i data-lucide="radio"></i> SatLink Comms
+      </button>
+      <button class="tab-btn highlight-tab" data-view="cinematic-sim">
+        <i data-lucide="play-circle"></i> Cinematic Sim
+      </button>
+      <button class="tab-btn" data-view="architecture-view">
+        <i data-lucide="layers"></i> Architecture
+      </button>
+    </nav>
+
+    <!-- Top Mission Telemetry Bar -->
+    <div class="header-telemetry-bar">
+      <div class="telem-item" id="telem-sat-link" title="Satellite Orbital Uplink Status">
+        <span class="telem-label"><i data-lucide="satellite"></i> SAT LINK</span>
+        <span class="telem-val status-online" id="stat-sat-link">ONLINE (IRIDIUM L-BAND)</span>
+      </div>
+      <div class="telem-item" id="telem-ground-net" title="Terrestrial Ground Network Status">
+        <span class="telem-label"><i data-lucide="wifi-off"></i> GROUND NET</span>
+        <span class="telem-val status-offline" id="stat-ground-net">OFFLINE (FAILOVER)</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label"><i data-lucide="navigation"></i> SWARM UAVs</span>
+        <span class="telem-val text-cyan" id="stat-swarm-count">4 / 4 AIRBORNE</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label"><i data-lucide="scan"></i> SEARCH COVERAGE</span>
+        <span class="telem-val text-yellow" id="stat-coverage">68.4% (24.8 km²)</span>
+      </div>
+      <div class="telem-item">
+        <span class="telem-label"><i data-lucide="shield-alert"></i> VICTIMS FOUND</span>
+        <span class="telem-val alert-glow" id="stat-victims-count">7 DETECTED (3 SAVED)</span>
+      </div>
+    </div>
+
+    <!-- Mission Control Quick Actions & User Auth Widget -->
+    <div class="header-actions">
+      <!-- User Auth / Connected Phone Trigger Widget -->
+      <div class="user-auth-widget" id="user-auth-widget">
+        <button class="btn btn-outline-sm btn-auth-trigger" id="btn-open-auth">
+          <i data-lucide="shield-check" class="text-cyan"></i>
+          <span id="auth-btn-label">Login / Link Phone</span>
+        </button>
+        
+        <!-- Logged-in Profile Chip (Shown when authenticated) -->
+        <div class="user-profile-chip hidden" id="user-profile-chip">
+          <div class="user-avatar-box">
+            <span class="user-avatar-text" id="user-avatar-initials">GA</span>
+            <span class="user-phone-status-dot" title="Phone Connected & Relaying GPS"></span>
+          </div>
+          <div class="user-profile-info">
+            <span class="user-name" id="header-user-name">Ghazi Mohammad Arsh</span>
+            <span class="user-role-device" id="header-user-device"><i data-lucide="smartphone"></i> iPhone 16 Pro (iOS)</span>
+          </div>
+          <button class="btn-user-menu" id="btn-user-menu" title="Account & Phone Link Settings">
+            <i data-lucide="chevron-down"></i>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div class="user-dropdown-menu hidden" id="user-dropdown-menu">
+            <div class="dropdown-header">
+              <div class="dh-title">COMMAND IDENTITY</div>
+              <div class="dh-name" id="drop-user-name">Ghazi Mohammad Arsh</div>
+              <div class="dh-email" id="drop-user-email">ghazi.arsh@rescueeye.ops</div>
+            </div>
+            <div class="dropdown-device-info">
+              <div class="dd-row">
+                <span><i data-lucide="smartphone" class="text-cyan"></i> Phone:</span>
+                <strong class="text-green" id="drop-phone-model">iPhone 16 Pro (iOS 18.4)</strong>
+              </div>
+              <div class="dd-row">
+                <span><i data-lucide="battery-charging" class="text-green"></i> Battery:</span>
+                <strong class="text-cyan" id="drop-phone-battery">89% • Connected</strong>
+              </div>
+              <div class="dd-row">
+                <span><i data-lucide="radio" class="text-yellow"></i> Sat Tether:</span>
+                <strong class="text-green">SOS Beacon Active</strong>
+              </div>
+            </div>
+            <div class="dropdown-actions">
+              <button class="dropdown-item" id="btn-manage-phone-link"><i data-lucide="refresh-cw"></i> Sync Device / Pair New</button>
+              <button class="dropdown-item text-red" id="btn-auth-logout"><i data-lucide="log-out"></i> Logout & Disconnect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-outline-sm" id="btn-toggle-failover" title="Toggle Terrestrial Network Blackout to test Satellite Failover">
+        <i data-lucide="zap"></i> <span id="failover-btn-text">Test Sat-Failover</span>
+      </button>
+      <button class="btn btn-outline-sm" id="btn-toggle-audio-mic" title="Test Live Microphone with DSP Filter">
+        <i data-lucide="mic"></i> <span id="mic-btn-text">Live Mic</span>
+      </button>
+      <button class="btn btn-primary-sm" id="btn-emergency-siren" title="Trigger Acoustic Staging Alert">
+        <i data-lucide="bell-ring"></i> Audio Alert
+      </button>
+      <button class="btn btn-danger-sm" id="btn-rth-all" title="Return-To-Home All Swarm UAVs">
+        <i data-lucide="home"></i> Swarm RTH
+      </button>
+    </div>
+  </header>
+
+  <!-- Emergency Flash Banner (Triggered dynamically upon high-confidence survivor detection) -->
+  <div class="emergency-banner hidden" id="emergency-banner">
+    <div class="banner-content">
+      <div class="banner-icon-box">
+        <i data-lucide="alert-triangle" class="banner-icon icon-pulse"></i>
+      </div>
+      <div class="banner-text">
+        <div class="banner-headline">
+          <span class="banner-tag">🚨 HIGH-CONFIDENCE SURVIVOR LOCKED</span>
+          <span class="banner-subtag" id="banner-case-id">CASE #RX-00127 (SECTOR A-07)</span>
+        </div>
+        <div class="banner-meta" id="banner-details">
+          Confidence: <strong>94%</strong> | Thermal: <strong>36.8°C (91%)</strong> | RGB: <strong>Human Torso (95%)</strong> | Voice: <strong>"HELP" (93%)</strong> | Radar: <strong>Respiration 14 bpm</strong> | GPS: <strong>17.3853° N, 78.4871° E (±0.4m)</strong>
+        </div>
+      </div>
+    </div>
+    <div class="banner-actions">
+      <button class="btn btn-sm btn-primary" id="btn-banner-dispatch">
+        <i data-lucide="send"></i> Dispatch Rescue Team RT-07
+      </button>
+      <button class="btn btn-sm btn-outline" id="btn-banner-track">
+        <i data-lucide="crosshair"></i> Track on Map
+      </button>
+      <button class="btn btn-sm btn-ghost" id="btn-banner-dismiss">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- SATELLITE DISASTER EVENT MONITORING BAR (Space Tier Quick Strip) -->
+  <section class="satellite-quick-strip" id="satellite-quick-strip">
+    <div class="strip-item strip-title">
+      <i data-lucide="satellite" class="text-cyan"></i>
+      <span>SATELLITE DISASTER MONITORING</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">NEW EVENT:</span>
+      <span class="strip-val text-red" id="quick-disaster-type">EARTHQUAKE M7.8</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">AFFECTED AREA:</span>
+      <span class="strip-val text-yellow" id="quick-disaster-area">24.8 km²</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">SEVERITY:</span>
+      <span class="strip-val badge-critical" id="quick-disaster-severity">CRITICAL</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-lbl">GROUND ACCESS:</span>
+      <span class="strip-val text-orange" id="quick-ground-access">LIMITED (BRIDGES COLLAPSED)</span>
+    </div>
+    <div class="strip-item strip-action">
+      <span class="strip-lbl">AI SEARCH PRIORITIZATION:</span>
+      <span class="strip-val text-cyan fw-bold">SECTOR A → IMMEDIATE DRONE DEPLOYMENT</span>
+      <button class="btn btn-xs btn-primary ml-2" id="btn-quick-dispatch-swarm">
+        <i data-lucide="zap"></i> Auto-Dispatch Swarm
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APPLICATION CONTENT PANELS (TAB CONTROLLED) -->
+  <!-- ========================================================================= -->
+  <main class="app-main-content">
+    
+    <!-- ======================================================================= -->
+    <!-- VIEW 1: TACTICAL COMMAND HUD (PRIMARY INTERACTION) -->
+    <!-- ======================================================================= -->
+    <div class="view-panel active" id="view-tactical-hud">
+      <div class="dashboard-grid">
+        
+        <!-- LEFT COLUMN: Dual/Quad-Spectrum Live Feeds & Sensor Payloads -->
+        <section class="panel-column left-panel">
+          
+          <!-- Quad-Spectrum Onboard Drone Vision Module -->
+          <div class="panel-card vision-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="eye"></i> ONBOARD SENSOR PAYLOAD FEEDS
+              </div>
+              <div class="vision-controls">
+                <!-- Drone Select Dropdown for Feeds -->
+                <div class="uav-feed-selector">
+                  <label for="uav-feed-select">UAV Feed:</label>
+                  <select id="uav-feed-select" class="select-xs">
+                    <option value="UAV-01">UAV-01 (Sector A - FLIR/RGB)</option>
+                    <option value="UAV-02">UAV-02 (Sector B - Flood/Optical)</option>
+                    <option value="UAV-03">UAV-03 (Sector C - Acoustic/Rubble)</option>
+                    <option value="UAV-04">UAV-04 (Sector D - Infra/LiDAR)</option>
+                  </select>
+                </div>
+                <div class="palette-selector">
+                  <label for="thermal-palette">Palette:</label>
+                  <select id="thermal-palette" class="select-xs">
+                    <option value="ironbow">FLIR Ironbow</option>
+                    <option value="rainbow">Rainbow</option>
+                    <option value="whitehot">White-Hot</option>
+                    <option value="lava">Lava IR</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body vision-viewport-container">
+              <!-- Split Feeds: Thermal FLIR & RGB YOLOv8 -->
+              <div class="dual-feed-grid">
+                
+                <!-- Feed 1: FLIR Thermal View -->
+                <div class="viewport-box thermal-viewport">
+                  <div class="viewport-hud-overlay">
+                    <span class="cam-tag"><i data-lucide="flame"></i> FLIR MLX90640 32x24 IR</span>
+                    <span class="spot-temp" id="thermal-spot-temp">MAX: 36.8°C</span>
+                  </div>
+                  <canvas id="thermal-canvas" width="360" height="230"></canvas>
+                  <div class="thermal-scale-bar">
+                    <span>15°C</span>
+                    <div class="scale-gradient" id="scale-gradient"></div>
+                    <span>42°C</span>
+                  </div>
+                  <div class="hud-crosshair"></div>
+                  <div class="thermal-box-annotation">
+                    <span class="temp-badge">HUMAN HEAT SIGNATURE [36.8°C]</span>
+                  </div>
+                </div>
+
+                <!-- Feed 2: RGB Optical YOLOv8 View -->
+                <div class="viewport-box rgb-viewport">
+                  <div class="viewport-hud-overlay">
+                    <span class="cam-tag"><i data-lucide="camera"></i> 4K RGB OPTICAL (YOLOv8)</span>
+                    <span class="model-tag">YOLOv8n-SAR v2.4</span>
+                  </div>
+                  <canvas id="rgb-canvas" width="360" height="230"></canvas>
+                  <div class="hud-target-reticle" id="hud-reticle"></div>
+                  <div class="hud-box-tracker">
+                    <span class="yolo-tag">HUMAN TORSO: 95.2%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sensor Metrics Strip -->
+              <div class="vision-status-strip">
+                <div class="status-metric">
+                  <span class="metric-lbl">Target Heat:</span>
+                  <span class="metric-val text-amber" id="feed-target-temp">36.8 °C (Human Norm)</span>
+                </div>
+                <div class="status-metric">
+                  <span class="metric-lbl">Debris Temp:</span>
+                  <span class="metric-val" id="feed-ambient-temp">19.4 °C (Ambient)</span>
+                </div>
+                <div class="status-metric">
+                  <span class="metric-lbl">YOLOv8 SAR:</span>
+                  <span class="metric-val text-cyan" id="feed-visual-conf">95% (Human Body)</span>
+                </div>
+                <div class="status-metric">
+                  <span class="metric-lbl">US Sonar AGL:</span>
+                  <span class="metric-val text-green" id="feed-ultrasonic-dist">4.8 m (Clear)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modality 3: Acoustic Survivor Detection & Spectrogram -->
+          <div class="panel-card audio-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="volume-2"></i> ACOUSTIC KEYWORD SPOTTER & 4-MIC DSP
+              </div>
+              <div class="audio-tags">
+                <span class="badge filter-badge" id="filter-status"><i data-lucide="filter"></i> DSP Notch (200-800Hz): ACTIVE</span>
+                <button class="btn btn-xs btn-outline" id="btn-sim-voice">
+                  <i data-lucide="volume-2"></i> Voice "HELP!"
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="audio-analysis-grid">
+                <!-- Spectrogram / Oscilloscope Canvas -->
+                <div class="audio-canvas-box">
+                  <canvas id="audio-visualizer-canvas" width="380" height="95"></canvas>
+                  <div class="audio-overlay-hud">
+                    <span id="audio-db-meter"><i data-lucide="activity"></i> -38 dB</span>
+                    <span id="audio-frequency-peak">PEAK: 340 Hz (Vocal Formant)</span>
+                  </div>
+                </div>
+
+                <!-- Keyword Spotting Matrix -->
+                <div class="keywords-panel">
+                  <div class="keyword-title">SOS VOCALIZATION KEYWORDS (VOSK-EDGE)</div>
+                  <div class="keyword-chips">
+                    <div class="keyword-chip active-hit" id="kw-help">
+                      <span class="kw-text">"HELP"</span>
+                      <span class="kw-prob" id="prob-help">93%</span>
+                    </div>
+                    <div class="keyword-chip" id="kw-saveme">
+                      <span class="kw-text">"SAVE ME"</span>
+                      <span class="kw-prob" id="prob-saveme">12%</span>
+                    </div>
+                    <div class="keyword-chip" id="kw-sos">
+                      <span class="kw-text">"SOS"</span>
+                      <span class="kw-prob" id="prob-sos">8%</span>
+                    </div>
+                    <div class="keyword-chip" id="kw-knock">
+                      <span class="kw-text">KNOCKING / VOID</span>
+                      <span class="kw-prob" id="prob-knock">45%</span>
+                    </div>
+                  </div>
+                  <div class="audio-model-status">
+                    <span>Edge DSP: <strong>Rotor Noise Cancelled</strong></span>
+                    <span id="audio-trigger-state" class="text-green font-mono">STATUS: KEYWORD DETECTED</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modality 4: Ultra-Wideband (UWB) Radar Micro-Vital Signs -->
+          <div class="panel-card uwb-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="activity"></i> UWB GROUND-PENETRATING RADAR (VITALS)
+              </div>
+              <span class="badge radar-badge"><i data-lucide="radio"></i> Debris Penetration: 2.8m</span>
+            </div>
+            <div class="card-body uwb-grid">
+              <div class="uwb-graph-box">
+                <canvas id="uwb-canvas" width="380" height="75"></canvas>
+                <div class="uwb-graph-label">RESPIRATION & MICRO-DOPPLER WAVEFORM</div>
+              </div>
+              <div class="uwb-metrics">
+                <div class="uwb-metric-item">
+                  <span class="lbl">Micro-Motion:</span>
+                  <span class="val text-green" id="uwb-motion-val">DETECTED (Chest Wall)</span>
+                </div>
+                <div class="uwb-metric-item">
+                  <span class="lbl">Respiration Rate:</span>
+                  <span class="val text-cyan" id="uwb-bpm-val">14 breaths/min</span>
+                </div>
+                <div class="uwb-metric-item">
+                  <span class="lbl">Heart Micro-Pulse:</span>
+                  <span class="val text-yellow" id="uwb-pulse-val">76 bpm (Faint)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- CENTER COLUMN: 7-Layer GIS Map & Tactical Navigation HUD -->
+        <section class="panel-column center-panel">
+          
+          <!-- Interactive Tactical GIS Map -->
+          <div class="panel-card map-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="map"></i> 7-LAYER SPACE-TO-GROUND GIS DISASTER MAP
+              </div>
+              <div class="map-controls">
+                <div class="layer-pills-bar">
+                  <button class="layer-pill active" data-layer="satellite" title="Orbital Satellite SAR & Imagery">
+                    <i data-lucide="satellite"></i> Sat SAR
+                  </button>
+                  <button class="layer-pill active" data-layer="damage" title="AI Structural Damage & Blockades">
+                    <i data-lucide="building-2"></i> AI Damage
+                  </button>
+                  <button class="layer-pill active" data-layer="drones" title="Multi-UAV Swarm Paths & FOV">
+                    <i data-lucide="navigation"></i> Swarm (4)
+                  </button>
+                  <button class="layer-pill active" data-layer="victims" title="AI Victim Detections & Beacons">
+                    <i data-lucide="user-check"></i> Victims
+                  </button>
+                  <button class="layer-pill active" data-layer="rescueteams" title="Ground Responders & Extraction Teams">
+                    <i data-lucide="truck"></i> Rescue Teams
+                  </button>
+                  <button class="layer-pill active" data-layer="medical" title="Hospitals, Staging & Shelters">
+                    <i data-lucide="cross"></i> Medical
+                  </button>
+                  <button class="layer-pill active" data-layer="comms" title="Satellite & Mesh Comms Coverage">
+                    <i data-lucide="radio"></i> Comms Grid
+                  </button>
+                </div>
+                <select id="select-scenario" class="select-sm">
+                  <option value="earthquake">Earthquake Rubble (City Core - 24.8 km²)</option>
+                  <option value="landslide">Mountain Landslide (Sector B / Isolated)</option>
+                  <option value="flood">River Flash Flood (Submerged Residential)</option>
+                  <option value="wildfire">Wildfire Complex (Evacuation Perimeter)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="card-body map-container-body">
+              <div id="mission-map"></div>
+              
+              <!-- Map Floating Sector Overlays (Sector A-D) -->
+              <div class="map-sector-legend">
+                <div class="sector-legend-header"><i data-lucide="layers"></i> SECTOR HAZARD MATRIX</div>
+                <div class="sector-legend-item sector-a" data-sector="A">
+                  <span class="sector-dot dot-critical"></span>
+                  <span class="sector-name">SECTOR A (CRITICAL)</span>
+                  <span class="sector-desc">Collapsed Structures • 4 Victims • UAV-01</span>
+                </div>
+                <div class="sector-legend-item sector-b" data-sector="B">
+                  <span class="sector-dot dot-high"></span>
+                  <span class="sector-name">SECTOR B (HIGH)</span>
+                  <span class="sector-desc">Isolated Pop • Flood Risk • UAV-02</span>
+                </div>
+                <div class="sector-legend-item sector-c" data-sector="C">
+                  <span class="sector-dot dot-high"></span>
+                  <span class="sector-name">SECTOR C (HIGH)</span>
+                  <span class="sector-desc">Flooded Rubble • Acoustic Scan • UAV-03</span>
+                </div>
+                <div class="sector-legend-item sector-d" data-sector="D">
+                  <span class="sector-dot dot-moderate"></span>
+                  <span class="sector-name">SECTOR D (MODERATE)</span>
+                  <span class="sector-desc">Road Access Open • LiDAR • UAV-04</span>
+                </div>
+              </div>
+
+              <!-- Artificial Horizon / Gimbal Widget -->
+              <div class="hud-gimbal-widget">
+                <div class="compass-ring" id="compass-indicator">
+                  <span class="compass-n">N</span>
+                  <span class="compass-e">E</span>
+                  <span class="compass-s">S</span>
+                  <span class="compass-w">W</span>
+                  <div class="compass-arrow" id="compass-needle"></div>
+                </div>
+                <div class="gimbal-stats">
+                  <div>PITCH: <span id="telem-pitch">2.1°</span></div>
+                  <div>ROLL: <span id="telem-roll">-1.4°</span></div>
+                  <div>YAW: <span id="telem-yaw">142° SE</span></div>
+                </div>
+              </div>
+
+              <!-- Sonar Proximity Radar Ring -->
+              <div class="ultrasonic-radar-widget">
+                <div class="radar-scan-line"></div>
+                <div class="radar-blip" id="radar-blip"></div>
+                <div class="radar-label"><i data-lucide="radar"></i> AGL SONAR: <span id="radar-dist-val">4.8m</span></div>
+              </div>
+
+              <!-- Live Rescue Team Navigation HUD (Overlaid on Map) -->
+              <div class="rescue-nav-hud" id="rescue-nav-hud">
+                <div class="nav-hud-title">
+                  <i data-lucide="navigation-2" class="icon-pulse"></i> LIVE DRONE GUIDANCE → RT-07
+                </div>
+                <div class="nav-hud-body">
+                  <div class="nav-stat">TARGET: <strong>VICTIM #RX-00127</strong></div>
+                  <div class="nav-stat">DISTANCE: <strong class="text-amber" id="rt-distance">82 M</strong></div>
+                  <div class="nav-stat">STATUS: <strong class="text-green" id="rt-status">APPROACHING (ETA 1m 40s)</strong></div>
+                  <div class="nav-stat">UAV OVERHEAD: <strong class="text-cyan">UAV-01 SPOTLIGHT ON</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Drone Patrol & Multi-UAV Swarm Command Panel -->
+          <div class="panel-card flight-control-card">
+            <div class="flight-controls-grid">
+              <div class="flight-state-box">
+                <span class="sub-label">SWARM STATE</span>
+                <span class="state-badge state-patrol" id="flight-state-badge">AUTONOMOUS SEARCH</span>
+                <span class="sub-mini-text">4 UAVs Synchronized</span>
+              </div>
+
+              <div class="flight-action-buttons">
+                <button class="btn btn-sm btn-primary" id="btn-start-patrol">
+                  <i data-lucide="play"></i> Lawnmower Search
+                </button>
+                <button class="btn btn-sm btn-outline" id="btn-spiral-patrol">
+                  <i data-lucide="rotate-cw"></i> Rubble Spiral
+                </button>
+                <button class="btn btn-sm btn-outline" id="btn-pause-hover">
+                  <i data-lucide="pause"></i> Hover & Deep Scan
+                </button>
+                <button class="btn btn-sm btn-outline" id="btn-drop-beacon">
+                  <i data-lucide="radio-tower"></i> Drop GPS Beacon
+                </button>
+                <button class="btn btn-sm btn-outline" id="btn-inject-victim">
+                  <i data-lucide="plus-circle"></i> Inject Test Victim
+                </button>
+              </div>
+
+              <div class="mission-progress-box">
+                <div class="progress-info">
+                  <span>Sector Coverage: <strong id="progress-percent">68.4%</strong></span>
+                  <span>Scanned: <strong>17,800 m²</strong></span>
+                  <span>ETA Completion: <strong>14 min</strong></span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="grid-progress-fill" style="width: 68.4%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Sensor Fusion Engine, Triage & Hardware -->
+        <section class="panel-column right-panel">
+          
+          <!-- AI Sensor Fusion Confidence Engine -->
+          <div class="panel-card fusion-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="cpu"></i> MULTI-MODAL SENSOR FUSION AI
+              </div>
+              <span class="badge ai-badge">Bayesian Fusion Matrix</span>
+            </div>
+
+            <div class="card-body">
+              <div class="fusion-score-container">
+                <div class="fusion-gauge-box">
+                  <svg class="circular-chart" viewBox="0 0 36 36">
+                    <path class="circle-bg"
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path class="circle-fill" id="fusion-gauge-circle"
+                      stroke-dasharray="94, 100"
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div class="gauge-center-text">
+                    <span class="gauge-number" id="fusion-total-val">94%</span>
+                    <span class="gauge-label">SURVIVOR CONFIDENCE</span>
+                  </div>
+                </div>
+                <div class="fusion-status-box">
+                  <div class="fusion-formula-badge" id="fusion-status-eval">
+                    <i data-lucide="check-circle"></i> HIGH CERTAINTY DETECTED
+                  </div>
+                  <div class="fusion-target-gps font-mono">
+                    GPS: <span id="fusion-gps-display">17.385300° N, 78.487100° E</span>
+                  </div>
+                  <div class="fusion-accuracy font-mono text-cyan">
+                    ESTIMATED ACCURACY: ±0.4 M
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modality Breakdown Bars -->
+              <div class="modality-breakdown">
+                <div class="modality-row">
+                  <div class="mod-meta">
+                    <span><i data-lucide="flame" class="text-orange"></i> Thermal Infrared (35%)</span>
+                    <span id="score-thermal-val">91% (36.8°C Body Heat)</span>
+                  </div>
+                  <div class="mod-bar-bg">
+                    <div class="mod-bar-fill fill-orange" id="bar-thermal" style="width: 91%;"></div>
+                  </div>
+                </div>
+
+                <div class="modality-row">
+                  <div class="mod-meta">
+                    <span><i data-lucide="user" class="text-cyan"></i> RGB YOLOv8 Vision (25%)</span>
+                    <span id="score-visual-val">95% (Human Torso & Face)</span>
+                  </div>
+                  <div class="mod-bar-bg">
+                    <div class="mod-bar-fill fill-cyan" id="bar-visual" style="width: 95%;"></div>
+                  </div>
+                </div>
+
+                <div class="modality-row">
+                  <div class="mod-meta">
+                    <span><i data-lucide="volume-2" class="text-yellow"></i> Voice DSP Keyword (25%)</span>
+                    <span id="score-audio-val">93% ("HELP" SOS Call)</span>
+                  </div>
+                  <div class="mod-bar-bg">
+                    <div class="mod-bar-fill fill-yellow" id="bar-audio" style="width: 93%;"></div>
+                  </div>
+                </div>
+
+                <div class="modality-row">
+                  <div class="mod-meta">
+                    <span><i data-lucide="activity" class="text-green"></i> UWB Vitals Radar (15%)</span>
+                    <span id="score-radar-val">88% (14 bpm Respiration)</span>
+                  </div>
+                  <div class="mod-bar-bg">
+                    <div class="mod-bar-fill fill-green" id="bar-radar" style="width: 88%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Formula Explainer -->
+              <div class="formula-box">
+                <code>Score = (0.35 × Thermal) + (0.25 × RGB) + (0.25 × Voice) + (0.15 × Radar)</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Survivor Triage Queue & Incident Management -->
+          <div class="panel-card triage-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="users"></i> VICTIM TRIAGE & DISPATCH QUEUE
+              </div>
+              <div class="triage-controls">
+                <button class="btn btn-xs btn-outline" id="btn-export-geojson" title="Export GeoJSON for ATAK / QGIS">
+                  <i data-lucide="download"></i> GIS
+                </button>
+                <button class="btn btn-xs btn-outline" id="btn-export-csv" title="Export CSV Summary">
+                  <i data-lucide="file-text"></i> CSV
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body triage-list-body">
+              <div class="victim-cards-list" id="victim-cards-container">
+                <!-- Dynamically populated victim dossiers via app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Space-to-Ground Telemetry & Hardware Diagnostics -->
+          <div class="panel-card hardware-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="hard-drive"></i> SPACE-TO-GROUND SYSTEM HEALTH
+              </div>
+              <span class="badge hardware-ok">ALL SENSORS NORMAL</span>
+            </div>
+            <div class="card-body hardware-metrics-grid">
+              <div class="hw-item">
+                <span class="hw-name">Satellite Uplink</span>
+                <span class="hw-status hw-green">Iridium L-Band (99.4%)</span>
+              </div>
+              <div class="hw-item">
+                <span class="hw-name">Jetson Orin NPU</span>
+                <span class="hw-status hw-green">51°C | 44% Load (30 FPS)</span>
+              </div>
+              <div class="hw-item">
+                <span class="hw-name">FLIR MLX90640</span>
+                <span class="hw-status hw-green">32x24 IR @ 16Hz</span>
+              </div>
+              <div class="hw-item">
+                <span class="hw-name">4-Mic Beamformer</span>
+                <span class="hw-status hw-green">DSP Notch Active</span>
+              </div>
+              <div class="hw-item">
+                <span class="hw-name">GPS NEO-M8N</span>
+                <span class="hw-status hw-green">16 Sats | 3D Fix</span>
+              </div>
+              <div class="hw-item">
+                <span class="hw-name">UWB Radar Sensor</span>
+                <span class="hw-status hw-green">2.8m Rubble Depth OK</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 2: SATELLITE GLOBAL DISASTER MONITORING -->
+    <!-- ======================================================================= -->
+    <div class="view-panel" id="view-satellite-ops">
+      <div class="satellite-ops-layout">
+        
+        <!-- Left: Global Event Roster & Satellite Telemetry -->
+        <div class="sat-ops-left">
+          <div class="panel-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="globe"></i> GLOBAL DISASTER EVENT REGISTRY
+              </div>
+              <span class="badge bg-red font-mono">5 ACTIVE DISASTERS</span>
+            </div>
+            <div class="card-body p-0">
+              <div class="disaster-events-list" id="disaster-events-list">
+                <!-- Dynamically filled with global events -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Satellite Pass & Sensor Specs -->
+          <div class="panel-card mt-3">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="satellite"></i> ORBITAL CONSTELLATION TELEMETRY
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="sat-meta-grid">
+                <div class="sat-meta-item">
+                  <span class="lbl">Active Satellite:</span>
+                  <span class="val text-cyan">SENTINEL-1C / RADARSAT-2</span>
+                </div>
+                <div class="sat-meta-item">
+                  <span class="lbl">Orbital Altitude:</span>
+                  <span class="val">693 km (LEO Sun-Synchronous)</span>
+                </div>
+                <div class="sat-meta-item">
+                  <span class="lbl">Sensor Payload:</span>
+                  <span class="val text-yellow">C-Band Synthetic Aperture Radar (SAR)</span>
+                </div>
+                <div class="sat-meta-item">
+                  <span class="lbl">Resolution:</span>
+                  <span class="val">0.5 m Ground Sampling Distance (GSD)</span>
+                </div>
+                <div class="sat-meta-item">
+                  <span class="lbl">Swath Width:</span>
+                  <span class="val">80 km Swath</span>
+                </div>
+                <div class="sat-meta-item">
+                  <span class="lbl">Next Orbital Pass:</span>
+                  <span class="val text-green font-mono">00:18:42 UTC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Satellite Imagery & Damage Analysis View -->
+        <div class="sat-ops-center">
+          <div class="panel-card h-100">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="scan"></i> SATELLITE DISASTER INTELLIGENCE & DAMAGE ASSESSMENT
+              </div>
+              <div class="sat-view-modes">
+                <button class="btn btn-xs btn-outline active" data-satmode="sar">SAR Damage Proxy</button>
+                <button class="btn btn-xs btn-outline" data-satmode="optical">Optical Post-Disaster</button>
+                <button class="btn btn-xs btn-outline" data-satmode="thermal">Satellite Thermal Hotspots</button>
+                <button class="btn btn-xs btn-outline" data-satmode="flood">Inundation Contours</button>
+              </div>
+            </div>
+            <div class="card-body sat-imagery-container">
+              <div class="sat-image-wrapper" id="sat-imagery-wrapper">
+                <canvas id="sat-imagery-canvas" width="800" height="460"></canvas>
+                
+                <!-- Overlay Sector Bounding Boxes & AI Annotations -->
+                <div class="sat-hud-overlay-grid">
+                  <div class="sat-sector-box sector-box-a" id="sat-box-a">
+                    <span class="box-tag">SECTOR A: CRITICAL (72% Structural Collapse)</span>
+                  </div>
+                  <div class="sat-sector-box sector-box-b" id="sat-box-b">
+                    <span class="box-tag">SECTOR B: HIGH (Isolated Population)</span>
+                  </div>
+                  <div class="sat-sector-box sector-box-c" id="sat-box-c">
+                    <span class="box-tag">SECTOR C: HIGH (Flooded Residential)</span>
+                  </div>
+                  <div class="sat-sector-box sector-box-d" id="sat-box-d">
+                    <span class="box-tag">SECTOR D: MODERATE (Road Access Open)</span>
+                  </div>
+                </div>
+
+                <div class="sat-watermark font-mono">
+                  <span>ORBITAL RECON: SENTINEL-SAR • GEO-RECTIFIED 0.5M/PX</span>
+                  <span>DISASTER BOUNDARY: 24.8 KM² (SEVERITY: CRITICAL)</span>
+                </div>
+              </div>
+
+              <!-- Satellite AI Damage Summary Strip -->
+              <div class="sat-damage-stats-row">
+                <div class="damage-stat-card">
+                  <span class="dmg-lbl">Destroyed Buildings:</span>
+                  <span class="dmg-val text-red">48 Structures</span>
+                </div>
+                <div class="damage-stat-card">
+                  <span class="dmg-lbl">Collapsed Infrastructure:</span>
+                  <span class="dmg-val text-orange">3 Bridges & 1 Overpass</span>
+                </div>
+                <div class="damage-stat-card">
+                  <span class="dmg-lbl">Blocked Access Arteries:</span>
+                  <span class="dmg-val text-yellow">18 Critical Junctions</span>
+                </div>
+                <div class="damage-stat-card">
+                  <span class="dmg-lbl">Estimated Trapped Civilians:</span>
+                  <span class="dmg-val text-cyan">~140 - 200 Victims</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: AI Search Prioritization & Auto Drone Mission Generator -->
+        <div class="sat-ops-right">
+          <div class="panel-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="workflow"></i> AI SECTOR SEARCH PRIORITIZATION
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="priority-sector-cards">
+                <div class="priority-card p-critical">
+                  <div class="p-header">
+                    <span class="p-badge badge-critical">PRIORITY 1: CRITICAL</span>
+                    <span class="p-sector">SECTOR A (A-07)</span>
+                  </div>
+                  <p class="p-desc">High-density collapsed concrete structures. Severe voice & heat anomalies detected by space-radar proxy.</p>
+                  <div class="p-meta">
+                    <span>Target UAV: <strong>UAV-Alpha-01</strong></span>
+                    <span>Sensors: <strong>FLIR + RGB + Sonar</strong></span>
+                  </div>
+                  <button class="btn btn-xs btn-primary w-100 mt-2 btn-deploy-sector" data-sector="A">
+                    <i data-lucide="send"></i> Dispatch UAV-Alpha-01
+                  </button>
+                </div>
+
+                <div class="priority-card p-high">
+                  <div class="p-header">
+                    <span class="p-badge badge-high">PRIORITY 2: HIGH</span>
+                    <span class="p-sector">SECTOR B (B-12)</span>
+                  </div>
+                  <p class="p-desc">Cut-off residential pocket with flash flood ingress. Road connections severed.</p>
+                  <div class="p-meta">
+                    <span>Target UAV: <strong>UAV-Bravo-02</strong></span>
+                    <span>Sensors: <strong>Multispectral + RGB</strong></span>
+                  </div>
+                  <button class="btn btn-xs btn-outline w-100 mt-2 btn-deploy-sector" data-sector="B">
+                    <i data-lucide="send"></i> Dispatch UAV-Bravo-02
+                  </button>
+                </div>
+
+                <div class="priority-card p-high">
+                  <div class="p-header">
+                    <span class="p-badge badge-high">PRIORITY 3: HIGH</span>
+                    <span class="p-sector">SECTOR C (C-04)</span>
+                  </div>
+                  <p class="p-desc">Submerged residential ruins. Deep voids requiring acoustic beamforming scan.</p>
+                  <div class="p-meta">
+                    <span>Target UAV: <strong>UAV-Charlie-03</strong></span>
+                    <span>Sensors: <strong>4-Mic Array + DSP</strong></span>
+                  </div>
+                  <button class="btn btn-xs btn-outline w-100 mt-2 btn-deploy-sector" data-sector="C">
+                    <i data-lucide="send"></i> Dispatch UAV-Charlie-03
+                  </button>
+                </div>
+
+                <div class="priority-card p-moderate">
+                  <div class="p-header">
+                    <span class="p-badge badge-moderate">PRIORITY 4: MODERATE</span>
+                    <span class="p-sector">SECTOR D (D-01)</span>
+                  </div>
+                  <p class="p-desc">Ground corridor passable. Infrastructure reconnaissance & route assessment.</p>
+                  <div class="p-meta">
+                    <span>Target UAV: <strong>UAV-Delta-04</strong></span>
+                    <span>Sensors: <strong>LiDAR + Optical</strong></span>
+                  </div>
+                  <button class="btn btn-xs btn-outline w-100 mt-2 btn-deploy-sector" data-sector="D">
+                    <i data-lucide="send"></i> Dispatch UAV-Delta-04
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 3: DRONE SWARM MISSION MANAGER -->
+    <!-- ======================================================================= -->
+    <div class="view-panel" id="view-swarm-manager">
+      <div class="swarm-manager-layout">
+        
+        <!-- Swarm Summary Header -->
+        <div class="panel-card swarm-summary-card">
+          <div class="swarm-header-stats">
+            <div class="stat-box">
+              <span class="lbl">ACTIVE FLEET:</span>
+              <span class="val text-cyan">4 MULTI-SENSOR UAVs</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">TOTAL SEARCH AREA:</span>
+              <span class="val text-yellow">24.8 km² (4 Sectors)</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">SWARM COVERAGE:</span>
+              <span class="val text-green">68.4% COMPLETE</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">VICTIMS DETECTED:</span>
+              <span class="val text-red alert-glow">7 SURVIVORS</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">SWARM COMMS ROUTE:</span>
+              <span class="val text-cyan">HYBRID SAT + LORA MESH</span>
+            </div>
+          </div>
+          <div class="swarm-header-actions">
+            <button class="btn btn-sm btn-primary" id="btn-launch-all-swarm">
+              <i data-lucide="plane-takeoff"></i> Launch Full Swarm
+            </button>
+            <button class="btn btn-sm btn-outline" id="btn-sync-routes">
+              <i data-lucide="refresh-cw"></i> Re-Optimize Routes
+            </button>
+            <button class="btn btn-sm btn-danger" id="btn-swarm-rth-2">
+              <i data-lucide="home"></i> Swarm RTH
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Drone Cards Grid -->
+        <div class="swarm-drones-grid">
+          
+          <!-- DRONE 01 -->
+          <div class="drone-card active-drone-card" id="card-uav-01">
+            <div class="drone-card-header">
+              <div class="drone-title">
+                <i data-lucide="navigation" class="drone-icon text-cyan"></i>
+                <div>
+                  <h3 class="drone-name">DRONE 01 (UAV-ALPHA-01)</h3>
+                  <span class="drone-role">Multi-Sensor SAR Lead • Sector A</span>
+                </div>
+              </div>
+              <span class="badge badge-active">AIRBORNE (SEARCH)</span>
+            </div>
+
+            <div class="drone-card-body">
+              <div class="drone-telemetry-list">
+                <div class="dt-row"><span>Target Sector:</span><strong class="text-red">Sector A (Critical Rubble)</strong></div>
+                <div class="dt-row"><span>Sensors:</span><strong>FLIR Thermal + 4K RGB + Sonar + UWB</strong></div>
+                <div class="dt-row"><span>Altitude AGL:</span><strong>14.2 m</strong></div>
+                <div class="dt-row"><span>Airspeed:</span><strong>4.6 m/s</strong></div>
+                <div class="dt-row"><span>Battery:</span><strong class="text-green">84% (22 min remaining)</strong></div>
+                <div class="dt-row"><span>Search Pattern:</span><strong>Lawnmower (3m GSD)</strong></div>
+                <div class="dt-row"><span>Victims Found:</span><strong class="text-red">4 Confirmed</strong></div>
+                <div class="dt-row"><span>Comms Uplink:</span><strong class="text-cyan">SatLink + LoRa 915MHz</strong></div>
+              </div>
+
+              <div class="drone-battery-bar">
+                <div class="battery-fill" style="width: 84%;"></div>
+              </div>
+            </div>
+
+            <div class="drone-card-footer">
+              <button class="btn btn-xs btn-primary btn-uav-view" data-uav="UAV-01">View HUD Feed</button>
+              <button class="btn btn-xs btn-outline btn-uav-hover" data-uav="UAV-01">Hover & Deep Scan</button>
+              <button class="btn btn-xs btn-outline btn-uav-rth" data-uav="UAV-01">RTH</button>
+            </div>
+          </div>
+
+          <!-- DRONE 02 -->
+          <div class="drone-card" id="card-uav-02">
+            <div class="drone-card-header">
+              <div class="drone-title">
+                <i data-lucide="navigation" class="drone-icon text-yellow"></i>
+                <div>
+                  <h3 class="drone-name">DRONE 02 (UAV-BRAVO-02)</h3>
+                  <span class="drone-role">Flood & Multispectral SAR • Sector B</span>
+                </div>
+              </div>
+              <span class="badge badge-active">AIRBORNE (PATROL)</span>
+            </div>
+
+            <div class="drone-card-body">
+              <div class="drone-telemetry-list">
+                <div class="dt-row"><span>Target Sector:</span><strong class="text-yellow">Sector B (Isolated Population)</strong></div>
+                <div class="dt-row"><span>Sensors:</span><strong>Multispectral 5-Band + RGB Zoom</strong></div>
+                <div class="dt-row"><span>Altitude AGL:</span><strong>18.5 m</strong></div>
+                <div class="dt-row"><span>Airspeed:</span><strong>5.2 m/s</strong></div>
+                <div class="dt-row"><span>Battery:</span><strong class="text-green">79% (19 min remaining)</strong></div>
+                <div class="dt-row"><span>Search Pattern:</span><strong>Perimeter Crevice Scan</strong></div>
+                <div class="dt-row"><span>Victims Found:</span><strong class="text-yellow">1 Confirmed</strong></div>
+                <div class="dt-row"><span>Comms Uplink:</span><strong class="text-cyan">SatLink Mesh Relay</strong></div>
+              </div>
+
+              <div class="drone-battery-bar">
+                <div class="battery-fill" style="width: 79%;"></div>
+              </div>
+            </div>
+
+            <div class="drone-card-footer">
+              <button class="btn btn-xs btn-outline btn-uav-view" data-uav="UAV-02">View HUD Feed</button>
+              <button class="btn btn-xs btn-outline btn-uav-hover" data-uav="UAV-02">Hover & Deep Scan</button>
+              <button class="btn btn-xs btn-outline btn-uav-rth" data-uav="UAV-02">RTH</button>
+            </div>
+          </div>
+
+          <!-- DRONE 03 -->
+          <div class="drone-card" id="card-uav-03">
+            <div class="drone-card-header">
+              <div class="drone-title">
+                <i data-lucide="navigation" class="drone-icon text-cyan"></i>
+                <div>
+                  <h3 class="drone-name">DRONE 03 (UAV-CHARLIE-03)</h3>
+                  <span class="drone-role">Acoustic Rubble Recon • Sector C</span>
+                </div>
+              </div>
+              <span class="badge badge-active">AIRBORNE (HOVERING)</span>
+            </div>
+
+            <div class="drone-card-body">
+              <div class="drone-telemetry-list">
+                <div class="dt-row"><span>Target Sector:</span><strong class="text-yellow">Sector C (Flooded Rubble)</strong></div>
+                <div class="dt-row"><span>Sensors:</span><strong>4-Mic Beamforming + DSP Notch</strong></div>
+                <div class="dt-row"><span>Altitude AGL:</span><strong>8.0 m (Low Acoustic Scan)</strong></div>
+                <div class="dt-row"><span>Airspeed:</span><strong>0.0 m/s (Hovering)</strong></div>
+                <div class="dt-row"><span>Battery:</span><strong class="text-yellow">68% (15 min remaining)</strong></div>
+                <div class="dt-row"><span>Search Pattern:</span><strong>Acoustic Waypoint Grid</strong></div>
+                <div class="dt-row"><span>Victims Found:</span><strong class="text-red">2 Confirmed</strong></div>
+                <div class="dt-row"><span>Comms Uplink:</span><strong class="text-cyan">SatLink + LoRa 915MHz</strong></div>
+              </div>
+
+              <div class="drone-battery-bar">
+                <div class="battery-fill" style="width: 68%;"></div>
+              </div>
+            </div>
+
+            <div class="drone-card-footer">
+              <button class="btn btn-xs btn-outline btn-uav-view" data-uav="UAV-03">View HUD Feed</button>
+              <button class="btn btn-xs btn-outline btn-uav-hover" data-uav="UAV-03">Hover & Deep Scan</button>
+              <button class="btn btn-xs btn-outline btn-uav-rth" data-uav="UAV-03">RTH</button>
+            </div>
+          </div>
+
+          <!-- DRONE 04 -->
+          <div class="drone-card" id="card-uav-04">
+            <div class="drone-card-header">
+              <div class="drone-title">
+                <i data-lucide="navigation" class="drone-icon text-green"></i>
+                <div>
+                  <h3 class="drone-name">DRONE 04 (UAV-DELTA-04)</h3>
+                  <span class="drone-role">Infrastructure LiDAR • Sector D</span>
+                </div>
+              </div>
+              <span class="badge badge-active">AIRBORNE (SURVEY)</span>
+            </div>
+
+            <div class="drone-card-body">
+              <div class="drone-telemetry-list">
+                <div class="dt-row"><span>Target Sector:</span><strong class="text-green">Sector D (Road & Infrastructure)</strong></div>
+                <div class="dt-row"><span>Sensors:</span><strong>Solid-State 3D LiDAR + 4K Optical</strong></div>
+                <div class="dt-row"><span>Altitude AGL:</span><strong>24.0 m</strong></div>
+                <div class="dt-row"><span>Airspeed:</span><strong>6.0 m/s</strong></div>
+                <div class="dt-row"><span>Battery:</span><strong class="text-green">91% (25 min remaining)</strong></div>
+                <div class="dt-row"><span>Search Pattern:</span><strong>Artery Corridor Linear</strong></div>
+                <div class="dt-row"><span>Access Roads:</span><strong class="text-green">2 Routes Cleared</strong></div>
+                <div class="dt-row"><span>Comms Uplink:</span><strong class="text-cyan">Direct SatLink Uplink</strong></div>
+              </div>
+
+              <div class="drone-battery-bar">
+                <div class="battery-fill" style="width: 91%;"></div>
+              </div>
+            </div>
+
+            <div class="drone-card-footer">
+              <button class="btn btn-xs btn-outline btn-uav-view" data-uav="UAV-04">View HUD Feed</button>
+              <button class="btn btn-xs btn-outline btn-uav-hover" data-uav="UAV-04">Hover & Deep Scan</button>
+              <button class="btn btn-xs btn-outline btn-uav-rth" data-uav="UAV-04">RTH</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Autonomous Mission Generator Box -->
+        <div class="panel-card mt-3">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="cpu"></i> AI AUTONOMOUS SWARM FLIGHT PLANNER
+            </div>
+            <span class="badge bg-cyan font-mono">MISSION GENERATOR ACTIVE</span>
+          </div>
+          <div class="card-body">
+            <div class="flight-planner-matrix">
+              <div class="planner-item">
+                <span class="p-lbl">TARGET SECTOR:</span>
+                <span class="p-val text-red">SECTOR A-07 (CRITICAL)</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">MISSION OBJECTIVE:</span>
+                <span class="p-val text-yellow">VICTIM SEARCH & LOCATE</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">DRONE REQUIRED:</span>
+                <span class="p-val text-cyan">MULTI-SENSOR SAR UAV</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">OPTIMAL ALTITUDE:</span>
+                <span class="p-val">12 - 15 M AGL</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">WEATHER CONSTRAINTS:</span>
+                <span class="p-val text-green">WIND: 6 KT (SAFE) • TEMP: 24°C</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">ESTIMATED DURATION:</span>
+                <span class="p-val">18 MIN (WITH 25% RTH RESERVE)</span>
+              </div>
+              <div class="planner-item">
+                <span class="p-lbl">EMERGENCY RETURN:</span>
+                <span class="p-val text-cyan">DIRECT SAFE-CORRIDOR TO LZ-01</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 4: SATELLITE COMMUNICATIONS & RESILIENT FAILOVER -->
+    <!-- ======================================================================= -->
+    <div class="view-panel" id="view-satellite-comms">
+      <div class="satellite-comms-layout">
+        
+        <!-- Left: Comms Status & Failover Switcher -->
+        <div class="comms-left-panel">
+          <div class="panel-card">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="radio"></i> RESILIENT SATELLITE LINK STATUS
+              </div>
+              <span class="badge badge-active" id="sat-link-badge">SATELLITE LINK: ONLINE</span>
+            </div>
+            <div class="card-body">
+              <div class="comms-status-indicators">
+                <div class="comms-ind-box" id="box-sat-status">
+                  <div class="ind-icon-box"><i data-lucide="satellite" class="icon-pulse text-cyan"></i></div>
+                  <div class="ind-info">
+                    <span class="ind-title">SATELLITE LINK</span>
+                    <span class="ind-state text-green" id="ind-sat-state">ONLINE (RESILIENT)</span>
+                    <span class="ind-sub">Iridium L-Band / Starlink LEO Relay</span>
+                  </div>
+                </div>
+
+                <div class="comms-ind-box" id="box-ground-status">
+                  <div class="ind-icon-box"><i data-lucide="wifi-off" class="text-red"></i></div>
+                  <div class="ind-info">
+                    <span class="ind-title">GROUND CELLULAR / FIBER</span>
+                    <span class="ind-state text-red" id="ind-ground-state">UNAVAILABLE (SEVERED)</span>
+                    <span class="ind-sub">Towers Down in 24.8 km² Zone</span>
+                  </div>
+                </div>
+
+                <div class="comms-ind-box">
+                  <div class="ind-icon-box"><i data-lucide="radio-tower" class="text-yellow"></i></div>
+                  <div class="ind-info">
+                    <span class="ind-title">EMERGENCY TELEMETRY</span>
+                    <span class="ind-state text-yellow">ACTIVE (99.8% PACKET RECEIPT)</span>
+                    <span class="ind-sub">Compact ~250 Byte Telemetry Packets</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interactive Failover Controller -->
+              <div class="failover-control-box mt-3">
+                <h4 class="box-subtitle"><i data-lucide="alert-octagon"></i> EXTREME DISASTER SCENARIO SIMULATOR</h4>
+                <p class="box-desc">Simulate complete catastrophic infrastructure collapse (cell towers destroyed, power grid offline, severed roads). Test RescueEye's zero-downtime satellite transition.</p>
+                <div class="failover-btns-row">
+                  <button class="btn btn-sm btn-danger" id="btn-trigger-blackout">
+                    <i data-lucide="zap-off"></i> Destroy Ground Networks
+                  </button>
+                  <button class="btn btn-sm btn-primary" id="btn-restore-networks">
+                    <i data-lucide="refresh-cw"></i> Restore Networks
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bandwidth Optimization Engine -->
+          <div class="panel-card mt-3">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="gauge"></i> INTELLIGENT BANDWIDTH MANAGEMENT
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="text-muted-sm">When bandwidth drops from terrestrial destruction, RescueEye automatically sheds heavy 4K video and prioritizes mission-critical telemetry packets.</p>
+              
+              <div class="bw-priority-list">
+                <div class="bw-item priority-p1">
+                  <span class="bw-rank">PRIORITY 1:</span>
+                  <span class="bw-name">Survivor GPS Coordinates & Confidence Scores</span>
+                  <span class="bw-size text-cyan">250 B / pkt (100% Guaranteed)</span>
+                </div>
+                <div class="bw-item priority-p1">
+                  <span class="bw-rank">PRIORITY 1:</span>
+                  <span class="bw-name">UAV Swarm Collision Telemetry & Emergency RTH</span>
+                  <span class="bw-size text-cyan">180 B / pkt (100% Guaranteed)</span>
+                </div>
+                <div class="bw-item priority-p2">
+                  <span class="bw-rank">PRIORITY 2:</span>
+                  <span class="bw-name">Rescue Team Live Navigation Vectors</span>
+                  <span class="bw-size text-yellow">450 B / pkt (High Priority)</span>
+                </div>
+                <div class="bw-item priority-p3">
+                  <span class="bw-rank">PRIORITY 3:</span>
+                  <span class="bw-name">Thumbnail Keyframe Detections (WebP 128x128)</span>
+                  <span class="bw-size text-yellow">4.2 KB (Burst Uplink)</span>
+                </div>
+                <div class="bw-item priority-p4">
+                  <span class="bw-rank">PRIORITY 4:</span>
+                  <span class="bw-name">Raw 4K Video Streams</span>
+                  <span class="bw-size text-red">PAUSED ON LOW-BANDWIDTH LINK</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Satellite Telemetry Packet Stream -->
+        <div class="comms-right-panel">
+          <div class="panel-card h-100">
+            <div class="card-header">
+              <div class="card-title">
+                <i data-lucide="terminal"></i> SATELLITE TELEMETRY PACKET STREAM (LIVE)
+              </div>
+              <div class="packet-controls">
+                <span class="badge bg-green font-mono" id="packet-bps-rate">1,240 bps • SAT LINK</span>
+                <button class="btn btn-xs btn-outline" id="btn-clear-packets">Clear</button>
+              </div>
+            </div>
+            <div class="card-body terminal-body">
+              <pre class="terminal-stream" id="sat-packet-stream">
+[08:34:02.102] 🛰️ SAT-UPLINK: Connected to IRIDIUM SV-104 (Elevation 48.2°, Azimuth 174°)
+[08:34:02.215] 📡 LINK-STATUS: SATELLITE LINK ONLINE | GROUND CELLULAR UNAVAILABLE
+[08:34:02.400] 📦 PKT #10481 [248B] <- UAV-01: LAT 17.385300 LNG 78.487100 ALT 14.2m TEMP 36.8C CONF 94%
+[08:34:02.820] 🚨 EVENT-LOCK: SURVIVOR IDENTIFIED AT SECTOR A-07 (CONF: 94.2%)
+[08:34:03.110] 🛰️ SAT-RELAY: Uplink dispatched to Emergency Ground Station & Disaster Command Center
+[08:34:03.450] 🚒 CMD-DISPATCH: Rescue Task Created #RX-00127 -> Assigned to Ground Unit RT-07
+[08:34:03.900] 📦 PKT #10482 [184B] <- UAV-02: SECTOR B PATROL (ALT 18.5m, BATT 79%, NO_ANOMALY)
+[08:34:04.220] 📦 PKT #10483 [212B] <- UAV-03: SECTOR C ACOUSTIC SCAN (HOVER, PEAK 340Hz "HELP", CONF 88%)
+[08:34:04.550] 📦 PKT #10484 [190B] <- UAV-04: SECTOR D LIDAR ARTERY SCAN (ROAD PASSABLE FOR RT-07)
+              </pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 5: CINEMATIC MISSION SIMULATION (0:00 - 1:00) -->
+    <!-- ======================================================================= -->
+    <div class="view-panel" id="view-cinematic-sim">
+      <div class="cinematic-sim-layout">
+        
+        <!-- Top Cinematic Controls Bar -->
+        <div class="panel-card cinematic-ctrl-card">
+          <div class="cinematic-header-row">
+            <div class="cinematic-title-group">
+              <i data-lucide="clapperboard" class="text-red icon-pulse"></i>
+              <div>
+                <h2 class="cinematic-title">CINEMATIC SPACE-TO-GROUND MISSION LIFECYCLE</h2>
+                <span class="cinematic-sub">Space Satellite Detection → Autonomous Swarm Dispatch → Sensor Fusion Detection → Ground Rescue</span>
+              </div>
+            </div>
+            
+            <div class="cinematic-timer-display font-mono" id="cinematic-timer">
+              00:00 / 01:00
+            </div>
+
+            <div class="cinematic-action-btns">
+              <button class="btn btn-sm btn-primary" id="btn-cinematic-play">
+                <i data-lucide="play"></i> Start Mission (0:00–1:00)
+              </button>
+              <button class="btn btn-sm btn-outline" id="btn-cinematic-pause">
+                <i data-lucide="pause"></i> Pause
+              </button>
+              <button class="btn btn-sm btn-outline" id="btn-cinematic-reset">
+                <i data-lucide="rotate-ccw"></i> Reset
+              </button>
+              <select id="cinematic-speed" class="select-xs">
+                <option value="1">1x Speed</option>
+                <option value="2" selected>2x Speed</option>
+                <option value="4">4x Speed</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Timeline Scrubber & Milestones -->
+          <div class="cinematic-timeline-container">
+            <div class="timeline-track">
+              <div class="timeline-progress" id="cinematic-progress" style="width: 0%;"></div>
+              
+              <!-- Milestone Markers -->
+              <div class="timeline-marker m1" data-time="0" title="0:00 - Satellite Orbit & Earthquake Event">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:00 Sat Orbit</span>
+              </div>
+              <div class="timeline-marker m2" data-time="5" title="0:05 - AI Damage Boundary & Sectorization">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:05 AI Sectors</span>
+              </div>
+              <div class="timeline-marker m3" data-time="10" title="0:10 - Command Center Swarm Mission Gen">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:10 Mission Gen</span>
+              </div>
+              <div class="timeline-marker m4" data-time="15" title="0:15 - 4-UAV Swarm Launch">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:15 4 UAVs Launch</span>
+              </div>
+              <div class="timeline-marker m5" data-time="20" title="0:20 - Multi-Sensor Survivor Detection">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:20 Sensor Fusion</span>
+              </div>
+              <div class="timeline-marker m6" data-time="30" title="0:30 - GPS Location Lock">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:30 GPS Lock</span>
+              </div>
+              <div class="timeline-marker m7" data-time="35" title="0:35 - Resilient Sat-Link Uplink">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:35 Sat Uplink</span>
+              </div>
+              <div class="timeline-marker m8" data-time="40" title="0:40 - Rescue Team Dispatched">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:40 Team RT-07</span>
+              </div>
+              <div class="timeline-marker m9" data-time="50" title="0:50 - Live Drone Guidance & Extraction">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">0:50 Extraction</span>
+              </div>
+              <div class="timeline-marker m10" data-time="60" title="1:00 - Mission Accomplished (Ghazi Mohammad Arsh Vision)">
+                <span class="marker-dot"></span>
+                <span class="marker-lbl">1:00 Victory</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cinema Screen Main Stage -->
+        <div class="cinema-stage-container">
+          <div class="cinema-screen" id="cinema-screen">
+            <canvas id="cinematic-canvas" width="1200" height="600"></canvas>
+            
+            <!-- Dynamic HUD Overlay for Cinema -->
+            <div class="cinema-hud-overlay" id="cinema-hud">
+              <div class="cinema-step-badge" id="cinema-step-badge">
+                <i data-lucide="satellite"></i> STAGE 1: ORBITAL SATELLITE DISASTER RECONNAISSANCE
+              </div>
+              <div class="cinema-main-headline" id="cinema-headline">
+                SATELLITE DISASTER DETECTION • EARTHQUAKE DETECTED
+              </div>
+              <div class="cinema-sub-details" id="cinema-details">
+                Sentinel-1C Synthetic Aperture Radar detects M7.8 seismic rupture across 24.8 km² disaster zone. Ground cellular networks severed.
+              </div>
+            </div>
+
+            <!-- Branded Final Screen Overlay (At 1:00) -->
+            <div class="cinema-final-screen hidden" id="cinema-final-screen">
+              <div class="final-brand-content">
+                <div class="final-logo-icon">
+                  <i data-lucide="satellite" class="icon-pulse"></i>
+                  <i data-lucide="crosshair" class="icon-pulse"></i>
+                </div>
+                <h1 class="final-title">RESCUE<span class="highlight">EYE</span></h1>
+                <h3 class="final-subtitle">SATELLITE + AI + DRONES + SENSOR FUSION</h3>
+                <div class="final-motto">DETECT. LOCATE. RESPOND. RESCUE.</div>
+                
+                <div class="final-quotes-box">
+                  <p class="final-quote">"FROM SPACE TO THE GROUND, RESCUEEYE CONNECTS EVERY LAYER OF DISASTER RESPONSE."</p>
+                  <p class="final-tagline">"WHEN DISASTER DESTROYS THE NETWORK, RESCUEEYE KEEPS THE MISSION CONNECTED."</p>
+                </div>
+
+                <div class="final-credits">
+                  <div class="credit-team">SOLUTION CONQUERORS</div>
+                  <div class="credit-founder">FOUNDED BY GHAZI MOHAMMAD ARSH</div>
+                </div>
+
+                <button class="btn btn-primary mt-4" id="btn-cinema-replay">
+                  <i data-lucide="rotate-ccw"></i> Replay Space-to-Ground Mission
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 6: COMPLETE RESCUEEYE 5-TIER ARCHITECTURE & VISION -->
+    <!-- ======================================================================= -->
+    <div class="view-panel" id="view-architecture-view">
+      <div class="architecture-layout">
+        
+        <!-- Architecture Header -->
+        <div class="panel-card mb-3">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="layers"></i> COMPLETE SPACE-TO-GROUND RESCUEEYE ARCHITECTURE
+            </div>
+            <span class="badge bg-cyan font-mono">5-TIER AUTONOMOUS PIPELINE</span>
+          </div>
+          <div class="card-body">
+            <p class="arch-lead-text">
+              RescueEye is the world's first unified <strong>Space-to-Ground Disaster Intelligence & Autonomous Multi-UAV Victim Rescue Network</strong>, engineered to bridge orbital satellite reconnaissance, multi-modal edge AI sensor fusion, and resilient satellite telemetry when conventional infrastructure collapses.
+            </p>
+          </div>
+        </div>
+
+        <!-- 5 Tiers Flowchart Grid -->
+        <div class="arch-tiers-grid">
+          
+          <!-- TIER 1: SPACE -->
+          <div class="arch-tier-card tier-space">
+            <div class="tier-badge"><i data-lucide="satellite"></i> TIER 1: SPACE LAYER</div>
+            <h3 class="tier-title">SATELLITE NETWORK</h3>
+            <ul class="tier-features">
+              <li><strong>Sentinel-1C & RADARSAT SAR:</strong> 0.5m GSD all-weather disaster boundary mapping</li>
+              <li><strong>Damage Proxy Mapping (DPM):</strong> Automated rubble & flood segmentation</li>
+              <li><strong>Resilient Satellite Relay:</strong> Iridium L-Band & Starlink LEO emergency uplinks</li>
+              <li><strong>Orbital Pre-Tasking:</strong> Instant sectorization before ground responders arrive</li>
+            </ul>
+            <div class="tier-output font-mono">OUTPUT: 24.8 km² GIS Damage Vectors</div>
+          </div>
+
+          <!-- TIER 2: COMMAND CENTER -->
+          <div class="arch-tier-card tier-ground">
+            <div class="tier-badge"><i data-lucide="cpu"></i> TIER 2: AI COMMAND CENTER</div>
+            <h3 class="tier-title">RESCUEEYE GIS AI ENGINE</h3>
+            <ul class="tier-features">
+              <li><strong>Automated Sector Prioritization:</strong> Rank Sectors A (Critical) to D (Moderate)</li>
+              <li><strong>Multi-UAV Swarm Route Optimization:</strong> Lawnmower & Rubble Spiral paths</li>
+              <li><strong>7-Layer Tactical GIS Map:</strong> Real-time drone, victim, and rescue vectors</li>
+              <li><strong>Low-Bandwidth Telemetry Ingestion:</strong> JSON packets over LoRa & Satellite</li>
+            </ul>
+            <div class="tier-output font-mono">OUTPUT: Autonomous Swarm Dispatch Orders</div>
+          </div>
+
+          <!-- TIER 3: AIR (SWARM) -->
+          <div class="arch-tier-card tier-air">
+            <div class="tier-badge"><i data-lucide="navigation"></i> TIER 3: AIR FLEET</div>
+            <h3 class="tier-title">AUTONOMOUS SMART UAV SWARM</h3>
+            <ul class="tier-features">
+              <li><strong>DRONE 01 (Lead SAR):</strong> FLIR MLX90640 Thermal + 4K RGB YOLOv8</li>
+              <li><strong>DRONE 02 (Flood SAR):</strong> Multispectral 5-Band Water & Mud Ingress</li>
+              <li><strong>DRONE 03 (Rubble SAR):</strong> 4-Mic Array + DSP Rotor Cancellation (200-800Hz)</li>
+              <li><strong>DRONE 04 (Infrastructure):</strong> Solid-State LiDAR Road Reconnaissance</li>
+            </ul>
+            <div class="tier-output font-mono">OUTPUT: Synchronized Multi-Modal Telemetry</div>
+          </div>
+
+          <!-- TIER 4: EDGE AI -->
+          <div class="arch-tier-card tier-edge">
+            <div class="tier-badge"><i data-lucide="zap"></i> TIER 4: EDGE SENSING</div>
+            <h3 class="tier-title">BAYESIAN SENSOR FUSION</h3>
+            <ul class="tier-features">
+              <li><strong>Thermal IR (35%):</strong> Human body heat (30°C–40°C) through crevices</li>
+              <li><strong>RGB YOLOv8-SAR (25%):</strong> Trapped limb, face, and waving gesture detection</li>
+              <li><strong>Acoustic DSP (25%):</strong> Vosk keyword spotting ("HELP", "SAVE ME", "SOS")</li>
+              <li><strong>UWB Radar (15%):</strong> Sub-debris chest-wall respiration (14 bpm)</li>
+            </ul>
+            <div class="tier-output font-mono">OUTPUT: Fused Confidence (94%) & ±0.4m GPS Lock</div>
+          </div>
+
+          <!-- TIER 5: RESCUE -->
+          <div class="arch-tier-card tier-rescue">
+            <div class="tier-badge"><i data-lucide="truck"></i> TIER 5: RESCUE TEAMS</div>
+            <h3 class="tier-title">GROUND RESCUE & EXTRACTION</h3>
+            <ul class="tier-features">
+              <li><strong>Live Overhead Drone Guidance:</strong> Real-time distance countdown (82m)</li>
+              <li><strong>High-Intensity Spotlight:</strong> Illumination of trapped survivor coordinates</li>
+              <li><strong>Direct ATAK / QGIS Export:</strong> GeoJSON instant tactical situational feed</li>
+              <li><strong>Life-Saving Extraction:</strong> Golden 72-hour survival probability maximized</li>
+            </ul>
+            <div class="tier-output font-mono">OUTPUT: Successful Survivor Rescue</div>
+          </div>
+
+        </div>
+
+        <!-- Humanitarian Vision & Founder Credits -->
+        <div class="panel-card mt-3">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="award"></i> TECHNOLOGY VISION & HUMANITARIAN MISSION
+            </div>
+            <span class="badge bg-green font-mono">OPEN HUMANITARIAN STANDARD</span>
+          </div>
+          <div class="card-body text-center p-4">
+            <h2 class="vision-lead text-cyan">"FROM SPACE TO THE GROUND, RESCUEEYE CONNECTS EVERY LAYER OF DISASTER RESPONSE."</h2>
+            <p class="vision-sub text-muted mt-2">
+              "WHEN DISASTER DESTROYS THE NETWORK, RESCUEEYE KEEPS THE MISSION CONNECTED."
+            </p>
+            <div class="mt-4 pt-3 border-top-dark">
+              <h3 class="font-orbitron text-red">RESCUEEYE — AI-BASED DISASTER VICTIM IDENTIFIER</h3>
+              <p class="fw-bold text-white mt-1">ENGINEERED BY SOLUTION CONQUERORS • FOUNDED BY GHAZI MOHAMMAD ARSH</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS & OVERLAYS -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal for Victim Details / Drone Inspection -->
+  <div class="modal-overlay hidden" id="victim-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="user-check"></i> <span id="modal-victim-id">VICTIM-DVI-01</span> SURVIVOR DOSSIER
+        </div>
+        <button class="btn-close" id="btn-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="modal-victim-content">
+        <!-- Injected via JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-modal-print"><i data-lucide="printer"></i> Print Triage Card</button>
+        <button class="btn btn-primary" id="btn-modal-dispatch-action"><i data-lucide="send"></i> Dispatch Medical Rescue Unit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Authentication & Mobile Phone Pairing -->
+  <div class="modal-overlay hidden" id="auth-modal">
+    <div class="modal-card auth-modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="shield-check" class="text-cyan"></i> RESCUEEYE SECURE ACCESS & PHONE LINK
+        </div>
+        <button class="btn-close" id="btn-auth-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div class="modal-body auth-modal-body">
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" data-authtab="social">
+            <i data-lucide="key"></i> Identity Sign-In
+          </button>
+          <button class="auth-tab-btn" data-authtab="phone-qr">
+            <i data-lucide="smartphone"></i> Mobile Phone Link
+          </button>
+          <button class="auth-tab-btn" data-authtab="otp">
+            <i data-lucide="message-square"></i> SMS / OTP Login
+          </button>
+        </div>
+
+        <!-- TAB 1: Social & Biometric Logins (Google & Apple iOS) -->
+        <div class="auth-tab-panel active" id="auth-panel-social">
+          <div class="auth-intro">
+            <p>Authorize command station credentials and automatically tether your mobile device for real-time biometrics, emergency beacon broadcast, and field mission synchronization.</p>
+          </div>
+
+          <div class="social-login-buttons">
+            <!-- Sign in with Google Button -->
+            <button class="btn-social-login btn-google" id="btn-login-google">
+              <svg class="social-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Continue with <strong>Google</strong> (Pixel / Android Link)</span>
+            </button>
+
+            <!-- Sign in with Apple iOS Button -->
+            <button class="btn-social-login btn-apple" id="btn-login-apple">
+              <svg class="social-icon" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.66-.8 1.1-1.92.98-3.04-.95.04-2.1.63-2.78 1.43-.6.69-1.13 1.82-.99 2.91 1.06.08 2.14-.54 2.79-1.3"/>
+              </svg>
+              <span>Sign in with <strong>Apple ID</strong> (iOS / iPhone FaceID Link)</span>
+            </button>
+          </div>
+
+          <div class="auth-divider"><span>OR QUICK ACCESS</span></div>
+
+          <button class="btn btn-outline w-100" id="btn-login-ghazi-fast">
+            <i data-lucide="user-check" class="text-cyan"></i>
+            <span>Sign In as <strong>Ghazi Mohammad Arsh</strong> (Chief Commander)</span>
+          </button>
+        </div>
+
+        <!-- TAB 2: QR Code Mobile Phone Pairing -->
+        <div class="auth-tab-panel" id="auth-panel-phone-qr">
+          <div class="qr-pairing-box">
+            <div class="qr-code-graphic" id="qr-code-container">
+              <div class="qr-scan-laser"></div>
+              <div class="qr-matrix-sim">
+                <div class="qr-corner top-left"></div>
+                <div class="qr-corner top-right"></div>
+                <div class="qr-corner bottom-left"></div>
+                <div class="qr-center-icon"><i data-lucide="satellite" class="text-cyan"></i></div>
+              </div>
+            </div>
+
+            <div class="qr-instructions">
+              <h4><i data-lucide="smartphone" class="text-cyan"></i> Pair RescueEye Mobile Companion</h4>
+              <p>Open the <strong>RescueEye Mobile App</strong> on your iPhone or Android, navigate to <em>Settings → Pair Command Station</em>, and scan the QR code above.</p>
+              
+              <div class="device-tether-benefits">
+                <div class="benefit-item"><i data-lucide="check-circle" class="text-green"></i> Live GPS Relaying from Phone</div>
+                <div class="benefit-item"><i data-lucide="check-circle" class="text-green"></i> Satellite SOS Mesh Tethering</div>
+                <div class="benefit-item"><i data-lucide="check-circle" class="text-green"></i> Real-Time Commander Haptic Alerts</div>
+              </div>
+
+              <button class="btn btn-primary w-100 mt-3" id="btn-simulate-qr-pair">
+                <i data-lucide="check"></i> Simulate Phone Scan & Connect
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: SMS / Phone Number OTP Login -->
+        <div class="auth-tab-panel" id="auth-panel-otp">
+          <div class="otp-form-box">
+            <div class="form-group">
+              <label for="input-phone-number"><i data-lucide="phone"></i> Mobile Phone Number:</label>
+              <div class="phone-input-row">
+                <select id="select-country-code" class="select-sm">
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+1">+1 (US/CA)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+971">+971 (UAE)</option>
+                </select>
+                <input type="tel" id="input-phone-number" class="input-text" placeholder="98765 43210" value="9876543210">
+              </div>
+            </div>
+
+            <div class="form-group mt-2" id="otp-code-group">
+              <label for="input-otp-code"><i data-lucide="lock"></i> 6-Digit SMS Security Code:</label>
+              <input type="text" id="input-otp-code" class="input-text font-mono text-center letter-spacing-2" placeholder="793 412" value="793412" maxlength="6">
+              <span class="text-muted-xs">SMS OTP Code auto-verified for commander terminal</span>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" id="btn-submit-phone-otp">
+              <i data-lucide="shield-check"></i> Verify & Link Connected Phone
+            </button>
+          </div>
+        </div>
+
+        <!-- CONNECTED PHONE LIVE STATUS HUD (Visible when connected) -->
+        <div class="connected-device-hud hidden" id="connected-device-hud">
+          <div class="cd-header">
+            <div class="cd-title"><i data-lucide="smartphone" class="text-green icon-pulse"></i> CONNECTED PHONE ACTIVE</div>
+            <span class="badge bg-green font-mono" id="cd-tether-status">TETHERED • 5G / SAT RELAY</span>
+          </div>
+          <div class="cd-grid">
+            <div class="cd-item">
+              <span class="lbl">Device:</span>
+              <strong class="val text-cyan" id="cd-phone-model">iPhone 16 Pro (iOS 18.4)</strong>
+            </div>
+            <div class="cd-item">
+              <span class="lbl">Owner:</span>
+              <strong class="val" id="cd-owner-name">Ghazi Mohammad Arsh</strong>
+            </div>
+            <div class="cd-item">
+              <span class="lbl">Mobile Battery:</span>
+              <strong class="val text-green" id="cd-battery-val">89% • Good</strong>
+            </div>
+            <div class="cd-item">
+              <span class="lbl">Phone Biometrics:</span>
+              <strong class="val text-cyan">FaceID Authenticated</strong>
+            </div>
+            <div class="cd-item">
+              <span class="lbl">Phone GPS Relay:</span>
+              <strong class="val text-yellow" id="cd-gps-relay">17.385300° N, 78.487100° E</strong>
+            </div>
+            <div class="cd-item">
+              <span class="lbl">Satellite SOS Mode:</span>
+              <strong class="val text-green">ARMED & LINKED</strong>
+            </div>
+          </div>
+          <button class="btn btn-outline-sm btn-danger-sm w-100 mt-2" id="btn-unlink-phone">
+            <i data-lucide="unlink"></i> Disconnect Phone
+          </button>
+        </div>
+
+      </div>
+      
+      <div class="modal-footer">
+        <div class="auth-security-notice font-mono text-dim">
+          <i data-lucide="lock"></i> End-to-End Encrypted SAR Network • Solution Conquerors
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+  <script>
+    // Initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
